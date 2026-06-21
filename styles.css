@@ -1,0 +1,445 @@
+.research-explorer-view {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Vertical drag handles between panels */
+.research-explorer-divider {
+  flex-shrink: 0;
+  width: 5px;
+  cursor: col-resize;
+  background: var(--background-modifier-border);
+  transition: background 0.15s;
+  z-index: 5;
+}
+
+.research-explorer-divider:hover,
+.research-explorer-divider.is-dragging {
+  background: var(--interactive-accent);
+}
+
+/* Horizontal drag handle inside right panel */
+.research-explorer-hdivider {
+  flex-shrink: 0;
+  height: 5px;
+  cursor: row-resize;
+  background: var(--background-modifier-border);
+  transition: background 0.15s;
+}
+
+.research-explorer-hdivider:hover,
+.research-explorer-hdivider.is-dragging {
+  background: var(--interactive-accent);
+}
+
+.research-explorer-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  min-width: 120px;
+  overflow: auto;
+  padding: 12px;
+}
+
+/* Center column: toolbar on top, graph fills the rest */
+.research-explorer-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 200px;
+  overflow: hidden;
+}
+
+.research-explorer-toolbar {
+  flex-shrink: 0;
+  padding: 10px;
+  overflow: auto;
+}
+
+/* Right column: list (scrollable, flex 1) + detail (resizable bottom section) */
+.research-explorer-right {
+  display: flex;
+  flex-direction: column;
+  width: 380px;
+  flex-shrink: 0;
+  min-width: 180px;
+  overflow: hidden;
+}
+
+.research-explorer-list {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 10px;
+}
+
+.research-explorer-detail {
+  flex-shrink: 0;
+  height: 280px;
+  min-height: 60px;
+  overflow: auto;
+  padding: 12px;
+}
+
+.research-explorer-graph {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  background: var(--background-primary);
+}
+
+.research-explorer-graph-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.research-explorer-graph-btn {
+  padding: 2px 8px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background: var(--background-secondary);
+  cursor: pointer;
+  font-size: var(--font-ui-smaller);
+  color: var(--text-normal);
+  line-height: 1.5;
+}
+
+.research-explorer-graph-btn:hover {
+  background: var(--background-modifier-hover);
+}
+
+.research-explorer-graph-legend {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 8px;
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+}
+
+.research-explorer-graph-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.research-explorer-graph-toggle {
+  cursor: pointer;
+  border-radius: 3px;
+  padding: 1px 4px;
+  transition: opacity 0.15s;
+}
+
+.research-explorer-graph-toggle:hover {
+  background: var(--background-modifier-hover);
+}
+
+.research-explorer-graph-toggle.is-muted {
+  opacity: 0.35;
+  text-decoration: line-through;
+}
+
+.research-explorer-graph-legend-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.research-explorer-graph-legend-line {
+  display: inline-block;
+  width: 18px;
+  height: 2px;
+  background: #8f8f9d;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.research-explorer-graph-legend-dashed {
+  background: none;
+  border-top: 2px dashed #8f8f9d;
+}
+
+.research-explorer-graph-canvas {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+.research-explorer-graph-tooltip {
+  position: absolute;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: var(--font-ui-smaller);
+  max-width: 240px;
+  pointer-events: none;
+  z-index: 10;
+  display: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+/* Scatter axes are SVG-based — no CSS needed for tick elements */
+
+/* ── Corpus stats panel ──────────────────────────────────── */
+.research-explorer-stats {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  background: var(--background-secondary);
+  border-bottom: 1px solid var(--background-modifier-border);
+  font-size: var(--font-ui-smaller);
+}
+
+.research-explorer-stats-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  line-height: 1.9;
+}
+
+.research-explorer-stats-label {
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 80px;
+}
+
+.research-explorer-stats-value {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.research-explorer-stats-link {
+  color: var(--link-color);
+  cursor: pointer;
+}
+
+.research-explorer-stats-link:hover {
+  text-decoration: underline;
+}
+
+.research-explorer-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.research-explorer-row:hover,
+.research-explorer-row.is-selected {
+  background: var(--background-modifier-hover);
+}
+
+.research-explorer-muted {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+/* ── Collections ─────────────────────────────────────────── */
+.research-explorer-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.research-explorer-section-header h3 {
+  margin: 0;
+}
+
+.research-explorer-section-header button {
+  font-size: var(--font-ui-smaller);
+  padding: 2px 8px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background: var(--background-secondary);
+  cursor: pointer;
+  color: var(--text-normal);
+}
+
+.research-explorer-section-header button:hover {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+}
+
+.research-explorer-collection-row {
+  border-radius: 6px;
+  border: 1px solid var(--background-modifier-border);
+  border-inline-start-width: 4px;
+  margin-bottom: 6px;
+  overflow: hidden;
+}
+
+.research-explorer-collection-info {
+  padding: 8px 10px 6px;
+  cursor: pointer;
+}
+
+.research-explorer-collection-info:hover {
+  background: var(--background-modifier-hover);
+}
+
+.research-explorer-collection-name {
+  font-weight: 500;
+  font-size: var(--font-ui-small);
+  margin-bottom: 2px;
+}
+
+.research-explorer-collection-actions {
+  display: flex;
+  gap: 4px;
+  padding: 4px 8px;
+  border-top: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+}
+
+.research-explorer-collection-btn {
+  flex: 1;
+  padding: 2px 6px;
+  font-size: var(--font-ui-smaller);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background: var(--background-primary);
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.research-explorer-collection-btn:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.research-explorer-collection-btn-danger:hover {
+  background: var(--background-modifier-error);
+  color: var(--text-error);
+  border-color: var(--text-error);
+}
+
+.research-explorer-collection-info.is-active {
+  background: var(--background-modifier-hover);
+}
+
+.research-explorer-collection-name-row {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+/* "All papers" chip + active state */
+.research-explorer-coll-chip {
+  display: inline-block;
+  padding: 2px 8px;
+  margin: 4px 0 6px;
+  border-radius: 10px;
+  border: 1px solid var(--background-modifier-border);
+  font-size: var(--font-ui-smaller);
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.research-explorer-coll-chip:hover,
+.research-explorer-coll-chip.is-active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+}
+
+/* Publication row text area */
+.research-explorer-row-text {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Collection dot toggles in publication list rows */
+.research-explorer-coll-dots {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex-shrink: 0;
+  align-self: center;
+  padding: 0 2px;
+}
+
+.research-explorer-coll-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 2px solid var(--coll-color, #888);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.12s, transform 0.1s;
+}
+
+.research-explorer-coll-dot.is-member {
+  background: var(--coll-color, #888);
+}
+
+.research-explorer-coll-dot:hover {
+  transform: scale(1.35);
+}
+
+.research-explorer-evidence {
+  margin-top: 4px;
+  padding-inline-start: 16px;
+  color: var(--text-muted);
+}
+
+.research-explorer-error {
+  color: var(--text-error);
+  white-space: pre-wrap;
+}
+
+.research-explorer-import-report {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+}
+
+.research-explorer-welcome {
+  max-width: 480px;
+  margin: 40px auto;
+  padding: 0 16px;
+}
+
+.research-explorer-welcome h2 {
+  margin-bottom: 8px;
+}
+
+.research-explorer-welcome ol {
+  padding-inline-start: 20px;
+  margin-bottom: 16px;
+}
+
+.research-explorer-error-state {
+  max-width: 480px;
+  margin: 40px auto;
+  padding: 16px;
+  border: 1px solid var(--text-error);
+  border-radius: 8px;
+}
+
+@media (max-width: 950px) {
+  .research-explorer-right,
+  .research-explorer-divider:last-of-type {
+    display: none;
+  }
+}
