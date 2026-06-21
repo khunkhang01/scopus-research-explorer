@@ -1,0 +1,14 @@
+{
+  "imported": 10000,
+  "importMs": 10608.59999999404,
+  "searchP95Ms": 119.30000001192093,
+  "rankingP95Ms": 1565,
+  "rankingItems": 100,
+  "maxMainThreadTaskMs": 0,
+  "memoryBeforeMb": 340.26171875,
+  "memoryAfterMb": 359.26171875,
+  "workerWasmMemoryMb": 24.125,
+  "databaseMb": 34.453125,
+  "cachedStatements": 0,
+  "memoryDeltaMb": 19
+}

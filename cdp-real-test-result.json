@@ -1,0 +1,85 @@
+{
+  "preflight": {
+    "rowCount": 20,
+    "withAbstract": 20,
+    "withReferences": 20,
+    "withAuthorIds": 20,
+    "warnings": []
+  },
+  "import": {
+    "created": 20,
+    "updated": 0,
+    "rejected": 0,
+    "resolvedEdges": 6,
+    "backupWarning": null
+  },
+  "corpus": {
+    "publicationCount": 20,
+    "resolvedEdges": 6,
+    "withTitle": 20,
+    "withAbstract": 20,
+    "withKeywords": 19,
+    "supportsAll": true
+  },
+  "seed": {
+    "title": "Additive Manufacturing: A Comprehensive Review",
+    "year": 2024,
+    "citationCount": 456
+  },
+  "exploration": {
+    "similar": {
+      "items": 10,
+      "graphEdges": 10
+    },
+    "earlier": {
+      "items": 5
+    },
+    "later": {
+      "items": 5
+    },
+    "references": {
+      "items": 0
+    },
+    "citedBy": {
+      "items": 0
+    }
+  },
+  "top3Similar": [
+    {
+      "title": "Harnessing artificial intelligence for the next generation of 3D printed medicines",
+      "year": 2021,
+      "score": 0.165,
+      "evidence": [
+        "bm25",
+        "keyword",
+        "year"
+      ]
+    },
+    {
+      "title": "Machine learning predicts 3D printing performance of over 900 drug delivery systems",
+      "year": 2021,
+      "score": 0.156,
+      "evidence": [
+        "bm25",
+        "keyword",
+        "year"
+      ]
+    },
+    {
+      "title": "M3DISEEN: A novel machine learning approach for predicting the 3D printability of medicines",
+      "year": 2020,
+      "score": 0.135,
+      "evidence": [
+        "bm25",
+        "keyword",
+        "year"
+      ]
+    }
+  ],
+  "collection": {
+    "name": "High-Impact Papers",
+    "membersAdded": 3
+  },
+  "notePath": "Research/Publications/f870ec36-e279-445d-9ead-73d3833e65c2.md",
+  "readingStateSet": true
+}

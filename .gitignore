@@ -1,0 +1,12 @@
+node_modules/
+data.json
+
+# Local test/build output
+coverage/
+*.log
+
+# Editor and OS metadata
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
