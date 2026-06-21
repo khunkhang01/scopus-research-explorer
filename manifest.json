@@ -1,7 +1,7 @@
 {
   "id": "scopus-research-explorer",
   "name": "Scopus Research Explorer",
-  "version": "0.1.1",
+  "version": "0.1.0",
   "minAppVersion": "1.5.0",
   "description": "Local-first Scopus CSV literature discovery, collections, graphs, and Obsidian notes.",
   "author": "SeekSeed",
