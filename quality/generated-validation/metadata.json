@@ -1,7 +1,0 @@
-{
-  "sourceFile": "scopus_export_Jun 20-2026_d89b1713-612d-4ba3-bfd3-e4e6e56eddb5.csv",
-  "generatedAt": "2026-06-20T17:00:13.362Z",
-  "corpusSize": 20,
-  "seedCount": 20,
-  "instructions": "Each evaluator assigns integer relevance 0-3. Set adjudicatedRelevance when ratings disagree."
-}

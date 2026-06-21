@@ -1,4 +1,0 @@
-Title,DOI,EID,Year,Abstract
-"Valid before malformed",10.6000/valid,2-s2.0-600,2024,"Valid abstract"
-,10.6000/missing-title,2-s2.0-601,not-a-year,"Missing title"
-"Unclosed quote,10.6000/unclosed,2-s2.0-602,2024,"broken"

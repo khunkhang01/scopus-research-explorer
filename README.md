@@ -19,23 +19,14 @@ Desktop-only Obsidian plugin for exploring a closed research corpus imported fro
 - Idempotent Markdown publication notes with a user-owned notes region
 - Persistent backup warnings and typed runtime/capability/import errors
 
-## Development
+## Installation
 
-```bash
-npm install
-npm run verify
-npm run quality:self-test
-```
+1. Download this repository.
+2. Copy the `scopus-research-explorer` folder into your vault's `.obsidian/plugins/` directory.
+3. Restart Obsidian.
+4. Enable **Scopus Research Explorer** under **Settings → Community plugins**.
 
-Reload Obsidian and enable `Scopus Research Explorer` in Community plugins.
-
-Windows runtime verification with Obsidian running on debugging port `9222`:
-
-```bash
-npm run verify:obsidian
-```
-
-See [RELEASE_VALIDATION.md](RELEASE_VALIDATION.md) for the Windows/macOS/Linux and human-review procedure.
+The repository contains the compiled plugin and runtime assets, so Node.js and a build step are not required.
 
 ## Important limitations
 
@@ -43,10 +34,9 @@ See [RELEASE_VALIDATION.md](RELEASE_VALIDATION.md) for the Windows/macOS/Linux a
 - Scopus Citation Count is not a citation edge.
 - Reference resolution is exact-only: DOI, EID, Scopus ID, or unique normalized title/year.
 - Gemini, adaptive feedback, ResearchTrails, and external APIs are intentionally outside MVP.
-- Windows x64 runtime is verified on Obsidian 1.12.7 / Electron 39.8.3, including migrations, restart restore, closed-workspace isolation, transaction rollback, cancellation, and import-to-note E2E. Exact runtime metadata is in `runtime-environment.json`.
+- Windows x64 runtime is verified on Obsidian 1.12.7 / Electron 39.8.3, including migrations, restart restore, closed-workspace isolation, transaction rollback, cancellation, and import-to-note E2E.
 - The vault's real 45-column Scopus export was validated: 20/20 rows imported, 0 validation errors, 6 resolved citation edges, and discovery returned results.
 - The public 10k import path—including source re-hash, raw archive, commit, and portable backup—passes at 11.17s.
 - The latest isolated 10k discovery run passes: search p95 119.3ms, ranking p95 1.565s, 300-node graph 1.525s, and plugin-attributable RSS delta 19MB.
 - Memory reporting includes absolute renderer RSS before/after, while the `<500MB` gate uses incremental renderer+worker RSS because Obsidian and Chromium share the host renderer process.
-- A 20-seed/two-reviewer judgment template from the real export is ready under `quality/generated-validation/`.
 - macOS/Linux OPFS runtime, additional Scopus export variants, and completed human relevance ratings still require release validation.

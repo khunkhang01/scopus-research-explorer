@@ -1,4 +1,0 @@
-Title,DOI,EID,Scopus ID,Year,Authors,Author(s) ID,Abstract,Author Keywords,Cited by,References
-"Graph Discovery for Literature Reviews",10.1000/graph,2-s2.0-100,100,2022,"Alice Smith","A-1","A graph method for discovering related literature.","graph; literature review",12,""
-"Citation Networks in Research",10.1000/citation,2-s2.0-101,101,2020,"Bob Jones","A-2","Citation network methods and bibliographic coupling.","citation network; bibliometrics",21,"Smith, Alice, ""Graph Discovery for Literature Reviews"", 2022, doi:10.1000/graph"
-"Semantic Search for Scholars",10.1000/semantic,2-s2.0-102,102,2024,"Alice Smith; Cara Lee","A-1; A-3","Semantic and lexical search over scholarly abstracts.","semantic search; literature review",5,"Jones, Bob, ""Citation Networks in Research"", 2020, SCOPUS_ID:101"
