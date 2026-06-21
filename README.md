@@ -26,6 +26,8 @@
 
 ### 2 — วางไฟล์ใน Vault
 
+> **สำคัญ:** ต้องคัดลอก **ครบทุก 5 ไฟล์** — ขาดแม้ไฟล์เดียว plugin จะไม่ทำงาน
+
 คัดลอกไฟล์ทั้ง 5 ไปวางในโฟลเดอร์นี้ภายใน Obsidian Vault:
 
 ```
@@ -33,10 +35,17 @@
 └── .obsidian/
     └── plugins/
         └── scopus-research-explorer/   ← สร้างโฟลเดอร์นี้แล้ววางไฟล์ทั้ง 5 ไว้ที่นี่
+            ├── main.js                 ← ต้องมี
+            ├── database.worker.js      ← ต้องมี
+            ├── manifest.json           ← ต้องมี
+            ├── styles.css              ← ต้องมี
+            └── sqlite3.wasm            ← ต้องมี
 ```
 
 > **Windows**: ถ้าไม่เห็นโฟลเดอร์ `.obsidian` → เปิด File Explorer → View → เปิด **Hidden items**  
 > **macOS**: กด **Command + Shift + .** เพื่อแสดงไฟล์ซ่อน
+
+**ตรวจสอบก่อนไปขั้นตอนถัดไป:** เปิดโฟลเดอร์ `scopus-research-explorer` แล้วนับว่ามีไฟล์ครบ 5 ไฟล์หรือไม่
 
 ---
 
@@ -95,6 +104,8 @@
 | อาการ | วิธีแก้ |
 |-------|---------|
 | ไม่เห็น Plugin ในรายการ | ตรวจสอบชื่อโฟลเดอร์ต้องเป็น `scopus-research-explorer` และมีครบ 5 ไฟล์ |
+| ขึ้น **"Research database is not initialized"** | ไฟล์ไม่ครบ — เปิดโฟลเดอร์ plugin แล้วตรวจสอบว่ามีทั้ง `database.worker.js` และ `sqlite3.wasm` |
+| ขึ้น error ว่า `ENOENT: no such file or directory` | ไฟล์ขาดหายไป — ดาวน์โหลด ZIP ใหม่และคัดลอกไฟล์ทั้งหมดอีกครั้ง |
 | Plugin เปิดไม่ติด | ตรวจสอบ Obsidian เวอร์ชัน (ต้อง ≥ 1.5.0) |
 | Import CSV แล้ว error | ใช้ไฟล์ CSV ที่ export จาก Scopus โดยตรง ไม่ใช่ Google Scholar |
 | ข้อมูลไม่แสดงใน Graph | กด **Explore** ก่อน (Graph จะแสดงหลังกด Explore) |
