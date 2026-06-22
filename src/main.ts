@@ -5,6 +5,7 @@ import { NoteMaterializer } from "./services/note-materializer";
 import { DEFAULT_SETTINGS, type PluginSettings } from "./types";
 import { ImportModal } from "./ui/import-modal";
 import { RESEARCH_VIEW_TYPE, ResearchView, TextInputModal } from "./ui/research-view";
+import { SemanticScholarModal } from "./ui/semantic-scholar-modal";
 import { ResearchExplorerSettingTab } from "./settings";
 
 export default class ScopusResearchExplorerPlugin extends Plugin {
@@ -74,6 +75,25 @@ export default class ScopusResearchExplorerPlugin extends Plugin {
       }
     });
     this.addCommand({
+      id: "search-semantic-scholar",
+      name: "Search Semantic Scholar",
+      callback: async () => {
+        const workspaces = await this.researchApi!.listWorkspaces();
+        const workspace = workspaces[0] ?? await this.researchApi!.createWorkspace({ name: "My research" });
+        new SemanticScholarModal(
+          this.app,
+          this.researchApi!,
+          this.settings,
+          workspace.workspaceId,
+          async () => {
+            await this.activateView();
+            const leaf = this.app.workspace.getLeavesOfType(RESEARCH_VIEW_TYPE)[0];
+            if (leaf?.view instanceof ResearchView) await leaf.view.refresh();
+          }
+        ).open();
+      }
+    });
+    this.addCommand({
       id: "run-runtime-diagnostics",
       name: "Run database runtime diagnostics",
       callback: async () => {
@@ -115,6 +135,7 @@ export default class ScopusResearchExplorerPlugin extends Plugin {
   }
 
   async onunload(): Promise<void> {
+    this.settings.semanticScholarApiKey = undefined;
     await this.researchApi?.dispose();
   }
 

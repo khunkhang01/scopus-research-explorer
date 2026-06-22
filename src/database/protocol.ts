@@ -14,6 +14,7 @@ import type {
   SourceFileIdentity,
   Workspace
 } from "../types";
+import type { SemanticScholarImportResult } from "../semantic-scholar/types";
 
 export interface SourcePayload extends SourceFileIdentity {
   content: string;
@@ -53,7 +54,21 @@ export type WorkerRequest =
   | { id: string; type: "add-to-collection"; payload: { collectionId: string; publicationIds: string[] } }
   | { id: string; type: "remove-from-collection"; payload: { collectionId: string; publicationIds: string[] } }
   | { id: string; type: "collection-seeds"; payload: { collectionId: string } }
-  | { id: string; type: "set-reading-state"; payload: { workspaceId: string; publicationId: string; state: ReadingState } };
+  | { id: string; type: "set-reading-state"; payload: { workspaceId: string; publicationId: string; state: ReadingState } }
+  | {
+      id: string;
+      type: "commit-semantic-scholar-import";
+      payload: {
+        workspaceId: string;
+        records: PublicationRecord[];
+        searchProvenance: {
+          query: string;
+          exportedAt: string;
+          database: "semantic-scholar";
+          notes?: string;
+        };
+      };
+    };
 
 export interface WorkerSuccess<T = unknown> {
   id: string;
@@ -118,4 +133,5 @@ export interface WorkerResultMap {
   "remove-from-collection": ResearchCollection;
   "collection-seeds": string[];
   "set-reading-state": void;
+  "commit-semantic-scholar-import": SemanticScholarImportResult;
 }

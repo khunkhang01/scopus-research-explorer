@@ -112,6 +112,8 @@ export interface PublicationRecord {
   eid?: string;
   doi?: string;
   scopusId?: string;
+  semanticScholarId?: string;
+  dataSource?: "scopus" | "semantic-scholar";
   title: string;
   abstract?: string;
   year?: number;
@@ -257,7 +259,10 @@ export interface PluginSettings {
   graphNodeLimit: number;
   resultLimit: number;
   backupWarning?: string;
+  semanticScholarApiKey?: string;
 }
+
+export type { SemanticScholarImportOptions, SemanticScholarImportResult } from "./semantic-scholar/types";
 
 export const DEFAULT_SETTINGS: PluginSettings = {
   notesFolder: "Research/Publications",

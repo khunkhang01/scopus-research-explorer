@@ -29,6 +29,9 @@ import type { SourcePayload } from "../database/protocol";
 import { UnsupportedDatabaseRuntimeError } from "../errors";
 import { decodeCsvBytes } from "../domain/csv-encoding";
 import { NoteMaterializer } from "./note-materializer";
+import { SemanticScholarClient } from "../semantic-scholar/client";
+import { mapSsPaperToRecord } from "../semantic-scholar/mapper";
+import type { SemanticScholarImportOptions, SemanticScholarImportResult } from "../semantic-scholar/types";
 
 interface VaultSchema {
   schemaVersion: 1;
@@ -74,6 +77,11 @@ export interface ResearchExplorerMvpApi {
   removePublicationsFromCollection(collectionId: string, publicationIds: string[]): Promise<ResearchCollection>;
   getCollectionSeedIds(collectionId: string): Promise<string[]>;
   setReadingState(workspaceId: string, publicationId: string, state: ReadingState): Promise<void>;
+  searchAndImportSemanticScholar(
+    options: SemanticScholarImportOptions,
+    onProgress?: (event: { stage: string; count?: number; total?: number; paperId?: string }) => void,
+    signal?: AbortSignal
+  ): Promise<SemanticScholarImportResult>;
 }
 
 export class ResearchApi implements ResearchExplorerMvpApi {
@@ -412,6 +420,53 @@ export class ResearchApi implements ResearchExplorerMvpApi {
 
   setReadingState(workspaceId: string, publicationId: string, state: ReadingState): Promise<void> {
     return this.requireClient().request("set-reading-state", { workspaceId, publicationId, state });
+  }
+
+  async searchAndImportSemanticScholar(
+    options: SemanticScholarImportOptions,
+    onProgress?: (event: { stage: string; count?: number; total?: number; paperId?: string }) => void,
+    signal?: AbortSignal
+  ): Promise<SemanticScholarImportResult> {
+    const client = new SemanticScholarClient(options.apiKey);
+    const searchResponse = await client.searchPapers(options.query, options.limit);
+    onProgress?.({ stage: "fetched", count: searchResponse.data.length, total: searchResponse.total });
+
+    let records = searchResponse.data.map((p) => mapSsPaperToRecord(p, options.workspaceId));
+
+    if (options.fetchReferences) {
+      for (const paper of searchResponse.data) {
+        if (signal?.aborted) break;
+        try {
+          const refs = await client.getReferences(paper.paperId);
+          const refRecords = refs.data
+            .map((r) => mapSsPaperToRecord(r.citedPaper, options.workspaceId))
+            .filter((r) => r.title !== "(no title)");
+          records = [...records, ...refRecords];
+          onProgress?.({ stage: "references", paperId: paper.paperId });
+        } catch {
+          // Non-fatal: reference fetch failure skips that paper's references
+        }
+      }
+    }
+
+    const result = await this.requireClient().request("commit-semantic-scholar-import", {
+      workspaceId: options.workspaceId,
+      records,
+      searchProvenance: {
+        query: options.query,
+        exportedAt: new Date().toISOString(),
+        database: "semantic-scholar" as const,
+      },
+    });
+
+    try {
+      await this.backup();
+      await this.onBackupWarning?.(undefined);
+    } catch (error) {
+      await this.onBackupWarning?.(error instanceof Error ? error.message : String(error));
+    }
+
+    return result;
   }
 
   getNotesFolder(): string {

@@ -26,7 +26,7 @@ type PoolUtil = Awaited<ReturnType<Sqlite["installOpfsSAHPoolVfs"]>>;
 
 const ctx: DedicatedWorkerGlobalScope = self as unknown as DedicatedWorkerGlobalScope;
 const DB_PATH = "/corpus.sqlite3";
-const SCHEMA_VERSION = 4;
+const SCHEMA_VERSION = 5;
 const RANKING_VERSION = "mvp-ranking-v1";
 const TEXT_VERSION = "mvp-text-v1";
 
@@ -101,9 +101,15 @@ CREATE TABLE IF NOT EXISTS publications(
   document_type TEXT,
   citation_count INTEGER,
   source_fields_json TEXT NOT NULL DEFAULT '{}',
+  semantic_scholar_id TEXT,
+  data_source TEXT DEFAULT 'scopus',
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
+CREATE INDEX IF NOT EXISTS idx_publications_semantic_scholar_id
+  ON publications(semantic_scholar_id) WHERE semantic_scholar_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_publications_data_source
+  ON publications(data_source);
 CREATE TABLE IF NOT EXISTS publication_identifiers(
   publication_id TEXT NOT NULL REFERENCES publications(publication_id) ON DELETE CASCADE,
   identifier_type TEXT NOT NULL,
@@ -286,6 +292,8 @@ function publicationFromRow(row: Record<string, unknown>): PublicationRecord {
     eid: row.eid ? String(row.eid) : undefined,
     doi: row.doi ? String(row.doi) : undefined,
     scopusId: row.scopus_id ? String(row.scopus_id) : undefined,
+    semanticScholarId: row.semantic_scholar_id ? String(row.semantic_scholar_id) : undefined,
+    dataSource: row.data_source ? String(row.data_source) as PublicationRecord["dataSource"] : undefined,
     title: String(row.title),
     abstract: row.abstract ? String(row.abstract) : undefined,
     year: typeof row.year === "number" ? row.year : row.year ? Number(row.year) : undefined,
@@ -465,6 +473,16 @@ async function initialize(payload: {
               WHEN 'title-year-exact' THEN parsed_title || '::' || parsed_year
               ELSE NULL
             END`
+        );
+      }
+      if (previousVersion >= 1 && previousVersion <= 4) {
+        run("ALTER TABLE publications ADD COLUMN semantic_scholar_id TEXT");
+        run("ALTER TABLE publications ADD COLUMN data_source TEXT DEFAULT 'scopus'");
+        run(
+          "CREATE INDEX IF NOT EXISTS idx_publications_semantic_scholar_id ON publications(semantic_scholar_id) WHERE semantic_scholar_id IS NOT NULL"
+        );
+        run(
+          "CREATE INDEX IF NOT EXISTS idx_publications_data_source ON publications(data_source)"
         );
       }
       run(`PRAGMA user_version=${SCHEMA_VERSION}`);
@@ -746,13 +764,14 @@ function bulkInsertNewPublications(
   bulkInsert("publications", [
     "publication_id", "title", "normalized_title", "abstract", "year", "authors_json",
     "author_ids_json", "affiliations_json", "author_keywords_json", "index_keywords_json",
-    "source_title", "document_type", "citation_count", "source_fields_json", "created_at", "updated_at"
+    "source_title", "document_type", "citation_count", "source_fields_json",
+    "data_source", "created_at", "updated_at"
   ], plans.map(({ publicationId, row }) => [
     publicationId, row.title, normalizeTitle(row.title), row.abstract ?? null, row.year ?? null,
     JSON.stringify(row.authors), JSON.stringify(row.authorIds), JSON.stringify(row.affiliations),
     JSON.stringify(row.authorKeywords), JSON.stringify(row.indexKeywords), row.sourceTitle ?? null,
     row.documentType ?? null, row.citationCount ?? null, JSON.stringify(row.sourceFields),
-    timestamp, timestamp
+    "scopus", timestamp, timestamp
   ]));
 
   const identifiers: unknown[][] = [];
@@ -856,14 +875,14 @@ function upsertPublication(
       `INSERT INTO publications(
         publication_id,title,normalized_title,abstract,year,authors_json,author_ids_json,
         affiliations_json,author_keywords_json,index_keywords_json,source_title,document_type,
-        citation_count,source_fields_json,created_at,updated_at
-      ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+        citation_count,source_fields_json,data_source,created_at,updated_at
+      ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [
         publicationId, row.title, normalizeTitle(row.title), row.abstract ?? null, row.year ?? null,
         JSON.stringify(row.authors), JSON.stringify(row.authorIds), JSON.stringify(row.affiliations),
         JSON.stringify(row.authorKeywords), JSON.stringify(row.indexKeywords), row.sourceTitle ?? null,
         row.documentType ?? null, row.citationCount ?? null, JSON.stringify(row.sourceFields),
-        timestamp, timestamp
+        "scopus", timestamp, timestamp
       ]
     );
     insertIdentifier(publicationId, "eid", row.eid, identifierIndex);
@@ -1961,6 +1980,203 @@ function updateCollection(collectionId: string, publicationIds: string[], add: b
   return collectionRecord(collectionId);
 }
 
+function commitSemanticScholarImport(
+  requestId: string,
+  workspaceId: string,
+  records: PublicationRecord[],
+  searchProvenance: unknown
+): import("../semantic-scholar/types").SemanticScholarImportResult {
+  if (!scalar<string>("SELECT workspace_id FROM workspaces WHERE workspace_id=?", [workspaceId])) {
+    throw Object.assign(new Error("Workspace not found."), { code: "VALIDATION_ERROR" });
+  }
+
+  // Build identifier index once for the whole import
+  const identifierIndex = new Map(rows<{
+    identifier_type: string;
+    identifier_value: string;
+    publication_id: string;
+  }>(
+    "SELECT identifier_type,identifier_value,publication_id FROM publication_identifiers"
+  ).map((item) => [`${item.identifier_type}:${item.identifier_value}`, item.publication_id]));
+
+  // Also build a semantic_scholar_id lookup to avoid full-table scans inside the loop
+  const ssIdIndex = new Map(rows<{
+    semantic_scholar_id: string;
+    publication_id: string;
+  }>(
+    "SELECT semantic_scholar_id,publication_id FROM publications WHERE semantic_scholar_id IS NOT NULL"
+  ).map((item) => [item.semantic_scholar_id, item.publication_id]));
+
+  const importId = crypto.randomUUID();
+  const timestamp = now();
+  let created = 0, updated = 0, unchanged = 0, rejected = 0;
+
+  run("BEGIN IMMEDIATE");
+  try {
+    run(
+      "INSERT INTO imports(import_id,workspace_id,source_files_json,provenance_json,created_at) VALUES(?,?,?,?,?)",
+      [importId, workspaceId, "[]", JSON.stringify(searchProvenance), timestamp]
+    );
+    run("INSERT INTO workspace_imports(workspace_id,import_id) VALUES(?,?)", [workspaceId, importId]);
+
+    for (const record of records) {
+      if (!record.title) { rejected++; continue; }
+
+      // Resolve existing publication by: doi > semanticScholarId > title+year
+      let existingId: string | undefined;
+
+      if (record.doi) {
+        existingId = identifierIndex.get(`doi:${record.doi}`);
+      }
+      if (!existingId && record.semanticScholarId) {
+        existingId = ssIdIndex.get(record.semanticScholarId);
+      }
+      if (!existingId && record.title && record.year) {
+        existingId = identifierIndex.get(`title_year:${record.title.toLowerCase().replace(/\s+/g, " ").trim()}::${record.year}`);
+      }
+
+      if (!existingId) {
+        // Create new publication
+        const pubId = record.publicationId ?? crypto.randomUUID();
+        run(
+          `INSERT INTO publications(
+            publication_id,title,normalized_title,abstract,year,authors_json,author_ids_json,
+            affiliations_json,author_keywords_json,index_keywords_json,source_title,document_type,
+            citation_count,source_fields_json,semantic_scholar_id,data_source,created_at,updated_at
+          ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+          [
+            pubId,
+            record.title,
+            record.title.toLocaleLowerCase().replace(/[^\p{L}\p{N}\s]/gu, " ").replace(/\s+/g, " ").trim(),
+            record.abstract ?? null,
+            record.year ?? null,
+            JSON.stringify(record.authors),
+            JSON.stringify(record.authorIds),
+            JSON.stringify(record.affiliations),
+            JSON.stringify(record.authorKeywords),
+            JSON.stringify(record.indexKeywords),
+            record.sourceTitle ?? null,
+            record.documentType ?? null,
+            record.citationCount ?? null,
+            JSON.stringify(record.sourceFields ?? {}),
+            record.semanticScholarId ?? null,
+            record.dataSource ?? "semantic-scholar",
+            timestamp,
+            timestamp
+          ]
+        );
+        if (record.doi) {
+          run(
+            "INSERT OR IGNORE INTO publication_identifiers(publication_id,identifier_type,identifier_value) VALUES(?,?,?)",
+            [pubId, "doi", record.doi]
+          );
+          identifierIndex.set(`doi:${record.doi}`, pubId);
+        }
+        if (record.semanticScholarId) {
+          ssIdIndex.set(record.semanticScholarId, pubId);
+        }
+        run(
+          "INSERT OR IGNORE INTO workspace_publications(workspace_id,publication_id) VALUES(?,?)",
+          [workspaceId, pubId]
+        );
+        run(
+          "INSERT OR IGNORE INTO workspace_publication_state(workspace_id,publication_id,reading_state,updated_at) VALUES(?,?,?,?)",
+          [workspaceId, pubId, "unread", timestamp]
+        );
+        // Update FTS
+        run("DELETE FROM publications_fts WHERE publication_id=?", [pubId]);
+        run(
+          "INSERT INTO publications_fts(publication_id,title,keywords,abstract) VALUES(?,?,?,?)",
+          [pubId, record.title, record.indexKeywords.join(" "), record.abstract ?? ""]
+        );
+        created++;
+      } else {
+        // Upsert into existing publication — only fill gaps, never overwrite
+        const existing = rows<Record<string, unknown>>(
+          "SELECT * FROM publications WHERE publication_id=?",
+          [existingId]
+        )[0];
+        if (!existing) { unchanged++; continue; }
+
+        const changed = [
+          !existing.abstract && record.abstract,
+          !existing.year && record.year,
+          !existing.source_title && record.sourceTitle,
+          !existing.document_type && record.documentType,
+          existing.citation_count == null && record.citationCount != null,
+          String(existing.authors_json) === "[]" && record.authors.length > 0,
+          String(existing.index_keywords_json) === "[]" && record.indexKeywords.length > 0,
+          !existing.semantic_scholar_id && record.semanticScholarId,
+        ].some(Boolean);
+
+        if (changed) {
+          run(
+            `UPDATE publications SET
+              abstract=COALESCE(abstract,?), year=COALESCE(year,?),
+              source_title=COALESCE(source_title,?), document_type=COALESCE(document_type,?),
+              citation_count=COALESCE(citation_count,?),
+              authors_json=CASE WHEN authors_json='[]' THEN ? ELSE authors_json END,
+              index_keywords_json=CASE WHEN index_keywords_json='[]' THEN ? ELSE index_keywords_json END,
+              semantic_scholar_id=COALESCE(semantic_scholar_id,?),
+              updated_at=?
+            WHERE publication_id=?`,
+            [
+              record.abstract ?? null, record.year ?? null,
+              record.sourceTitle ?? null, record.documentType ?? null,
+              record.citationCount ?? null,
+              JSON.stringify(record.authors), JSON.stringify(record.indexKeywords),
+              record.semanticScholarId ?? null,
+              timestamp, existingId
+            ]
+          );
+          // Refresh FTS
+          const canonical = rows<{ title: string; index_keywords_json: string; abstract: string | null }>(
+            "SELECT title,index_keywords_json,abstract FROM publications WHERE publication_id=?",
+            [existingId]
+          )[0];
+          if (canonical) {
+            run("DELETE FROM publications_fts WHERE publication_id=?", [existingId]);
+            run(
+              "INSERT INTO publications_fts(publication_id,title,keywords,abstract) VALUES(?,?,?,?)",
+              [existingId, canonical.title,
+               (JSON.parse(canonical.index_keywords_json) as string[]).join(" "),
+               canonical.abstract ?? ""]
+            );
+          }
+          updated++;
+        } else {
+          unchanged++;
+        }
+        run(
+          "INSERT OR IGNORE INTO workspace_publications(workspace_id,publication_id) VALUES(?,?)",
+          [workspaceId, existingId]
+        );
+        run(
+          "INSERT OR IGNORE INTO workspace_publication_state(workspace_id,publication_id,reading_state,updated_at) VALUES(?,?,?,?)",
+          [workspaceId, existingId, "unread", timestamp]
+        );
+        if (record.doi && !identifierIndex.has(`doi:${record.doi}`)) {
+          run(
+            "INSERT OR IGNORE INTO publication_identifiers(publication_id,identifier_type,identifier_value) VALUES(?,?,?)",
+            [existingId, "doi", record.doi]
+          );
+          identifierIndex.set(`doi:${record.doi}`, existingId);
+        }
+        if (record.semanticScholarId) {
+          ssIdIndex.set(record.semanticScholarId, existingId);
+        }
+      }
+    }
+
+    run("COMMIT");
+  } catch (error) {
+    run("ROLLBACK");
+    throw error;
+  }
+
+  return { created, updated, unchanged, rejected, totalFetched: records.length };
+}
+
 async function handle(request: WorkerRequest): Promise<unknown> {
   switch (request.type) {
     case "cancel":
@@ -2022,6 +2238,13 @@ async function handle(request: WorkerRequest): Promise<unknown> {
         [request.payload.workspaceId, request.payload.publicationId, request.payload.state, now()]
       );
       return undefined;
+    case "commit-semantic-scholar-import":
+      return commitSemanticScholarImport(
+        request.id,
+        request.payload.workspaceId,
+        request.payload.records,
+        request.payload.searchProvenance
+      );
   }
 }
 
