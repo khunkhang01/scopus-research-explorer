@@ -81,15 +81,18 @@ scopus-research-explorer/
 
 1. Select the network icon in the left ribbon, or run **Open research explorer** from the Command Palette.
 2. Create a research workspace.
-3. Add papers with **Import Scopus CSV** or **Search Semantic Scholar**.
-4. Search and filter the local corpus.
-5. Check up to 10 papers to use as exploration seeds.
-6. Select an exploration mode and choose **Explore**.
-7. Open a paper to update its reading state, add it to a collection, or create an Obsidian note.
+3. In the left sidebar, find **Add papers**.
+4. Select **Import** beside **Scopus CSV**, or **Search** beside **Semantic Scholar**.
+5. Search and filter the local corpus.
+6. Check up to 10 papers to use as exploration seeds.
+7. Select an exploration mode and choose **Explore**.
+8. Open a paper to update its reading state, add it to a collection, or create an Obsidian note.
+
+> ℹ️ Scopus and Semantic Scholar are data sources, not separate application modes. Papers from either source are imported into the selected workspace and can be searched and explored together.
 
 ## 📄 Importing Scopus CSV files
 
-Run **Import Scopus CSV** from the Command Palette or select the import button inside a workspace.
+Under **Add papers** in the workspace sidebar, select **Import** beside **Scopus CSV**. The same action is available as **Import Scopus CSV** in the Command Palette.
 
 1. Choose one or more CSV files.
 2. Keep automatic encoding detection enabled unless you know the file encoding.
@@ -135,12 +138,13 @@ The current client limits itself to:
 
 ### 🔍 Search and import papers
 
-1. Run **Search Semantic Scholar** from the Command Palette.
-2. Enter a search query.
-3. Choose a maximum of 1-100 results.
-4. Optionally enable **Fetch references**.
-5. Select **Search** to preview the results.
-6. Select **Import into workspace**.
+1. Open a workspace and find **Add papers** in the left sidebar.
+2. Select **Search** beside **Semantic Scholar**. The same action is available as **Search Semantic Scholar** in the Command Palette.
+3. Enter a search query.
+4. Choose a maximum of 1-100 results.
+5. Optionally enable **Fetch references**.
+6. Select **Search** to preview the results.
+7. Select **Import into workspace**.
 
 Fetching references can make one additional API request for every returned paper. Reference failures are non-fatal, so the primary search results can still be imported.
 
@@ -401,15 +405,18 @@ scopus-research-explorer/
 
 1. กดไอคอนรูปเครือข่ายที่แถบด้านซ้าย หรือเรียกคำสั่ง **Open research explorer**
 2. สร้าง Research Workspace
-3. เพิ่มบทความด้วย **Import Scopus CSV** หรือ **Search Semantic Scholar**
-4. ค้นหาและกรองบทความในฐานข้อมูล
-5. เลือกบทความได้สูงสุด 10 รายการเพื่อใช้เป็น Seed
-6. เลือกรูปแบบการสำรวจแล้วกด **Explore**
-7. เปิดรายละเอียดบทความเพื่อเปลี่ยนสถานะการอ่าน เพิ่มลง Collection หรือสร้างโน้ต
+3. มองหาส่วน **Add papers** ที่แถบด้านซ้าย
+4. กด **Import** ข้าง **Scopus CSV** หรือกด **Search** ข้าง **Semantic Scholar**
+5. ค้นหาและกรองบทความในฐานข้อมูล
+6. เลือกบทความได้สูงสุด 10 รายการเพื่อใช้เป็น Seed
+7. เลือกรูปแบบการสำรวจแล้วกด **Explore**
+8. เปิดรายละเอียดบทความเพื่อเปลี่ยนสถานะการอ่าน เพิ่มลง Collection หรือสร้างโน้ต
+
+> ℹ️ Scopus และ Semantic Scholar เป็นแหล่งข้อมูล ไม่ใช่โหมดการทำงานแยกกัน บทความจากทั้งสองแหล่งจะถูกนำเข้าไปยัง Workspace ที่เลือก และสามารถค้นหาหรือสำรวจร่วมกันได้
 
 ## 📄 การนำเข้าไฟล์ Scopus CSV
 
-เรียกคำสั่ง **Import Scopus CSV** จาก Command Palette หรือกดปุ่มนำเข้าภายใน Workspace
+ในแถบด้านซ้ายของ Workspace ให้ไปที่ **Add papers** แล้วกด **Import** ข้าง **Scopus CSV** หรือเรียกคำสั่ง **Import Scopus CSV** จาก Command Palette
 
 1. เลือกไฟล์ CSV อย่างน้อยหนึ่งไฟล์
 2. ใช้การตรวจจับ Encoding อัตโนมัติ เว้นแต่ทราบ Encoding ของไฟล์
@@ -455,12 +462,13 @@ API Key เป็นตัวเลือกเสริม
 
 ### 🔍 ค้นหาและนำเข้าบทความ
 
-1. เรียกคำสั่ง **Search Semantic Scholar**
-2. กรอกคำค้น
-3. เลือกจำนวนผลลัพธ์สูงสุด 1-100 รายการ
-4. เปิด **Fetch references** หากต้องการนำเข้ารายการอ้างอิง
-5. กด **Search** เพื่อดูตัวอย่างผลลัพธ์
-6. กด **Import into workspace**
+1. เปิด Workspace แล้วมองหาส่วน **Add papers** ที่แถบด้านซ้าย
+2. กด **Search** ข้าง **Semantic Scholar** หรือเรียกคำสั่ง **Search Semantic Scholar** จาก Command Palette
+3. กรอกคำค้น
+4. เลือกจำนวนผลลัพธ์สูงสุด 1-100 รายการ
+5. เปิด **Fetch references** หากต้องการนำเข้ารายการอ้างอิง
+6. กด **Search** เพื่อดูตัวอย่างผลลัพธ์
+7. กด **Import into workspace**
 
 การเปิด Fetch references อาจส่ง API Request เพิ่มอีกหนึ่งครั้งต่อบทความ หากการดึง References บางรายการล้มเหลว ระบบยังสามารถนำเข้าผลการค้นหาหลักได้
 
