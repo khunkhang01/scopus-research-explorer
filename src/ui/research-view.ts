@@ -12,6 +12,7 @@ import type {
   Workspace
 } from "../types";
 import { ImportModal } from "./import-modal";
+import { SemanticScholarModal } from "./semantic-scholar-modal";
 
 export class TextInputModal extends Modal {
   private readonly label: string;
@@ -275,10 +276,31 @@ export class ResearchView extends ItemView {
       };
     }
     if (!this.selectedWorkspace) return;
-    new Setting(container).addButton((button) => button
-      .setCta()
-      .setButtonText("Import Scopus CSV")
-      .onClick(() => new ImportModal(this.app, this.api, this.selectedWorkspace!, () => this.refresh()).open()));
+    container.createEl("h3", { text: "Add papers" });
+    new Setting(container)
+      .setName("Scopus CSV")
+      .setDesc("Import exported Scopus records.")
+      .addButton((button) => button
+        .setCta()
+        .setButtonText("Import")
+        .onClick(() => new ImportModal(
+          this.app,
+          this.api,
+          this.selectedWorkspace!,
+          () => this.refresh()
+        ).open()));
+    new Setting(container)
+      .setName("Semantic Scholar")
+      .setDesc("Search the live Semantic Scholar API.")
+      .addButton((button) => button
+        .setButtonText("Search")
+        .onClick(() => new SemanticScholarModal(
+          this.app,
+          this.api,
+          this.settings,
+          this.selectedWorkspace!.workspaceId,
+          () => this.refresh()
+        ).open()));
     const collHeader = container.createDiv({ cls: "research-explorer-section-header" });
     collHeader.createEl("h3", { text: "Collections" });
     collHeader.createEl("button", { text: "+ New", attr: { title: "Create a new collection" } })
@@ -467,10 +489,12 @@ export class ResearchView extends ItemView {
       welcome.createEl("p", { text: "Get started in two steps:" });
       const steps = welcome.createEl("ol");
       steps.createEl("li", { text: "Click \"New\" in the left sidebar to create a workspace." });
-      steps.createEl("li", { text: "Then click \"Import Scopus CSV\" to load your Scopus export." });
+      steps.createEl("li", {
+        text: "Then add papers with \"Import Scopus CSV\" or \"Search Semantic Scholar\"."
+      });
       welcome.createEl("p", {
         cls: "research-explorer-muted",
-        text: "Export your search results from Scopus as CSV, then import here to discover related work."
+        text: "Both sources are imported into the same local workspace, where they can be searched and explored together."
       });
       new Setting(welcome)
         .addButton((button) => button
