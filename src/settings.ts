@@ -1,4 +1,4 @@
-import { App, Notice, PluginSettingTab, Setting } from "obsidian";
+import { App, Notice, PluginSettingTab, Setting, requestUrl } from "obsidian";
 import type ScopusResearchExplorerPlugin from "./main";
 import { SemanticScholarClient, SemanticScholarApiError } from "./semantic-scholar/client";
 
@@ -88,7 +88,7 @@ export class ResearchExplorerSettingTab extends PluginSettingTab {
           statusEl.setText("Testing…");
           try {
             const key = this.plugin.settings.semanticScholarApiKey;
-            const client = new SemanticScholarClient(key || undefined);
+            const client = new SemanticScholarClient(key || undefined, requestUrl);
             await client.searchPapers("test", 1);
             statusEl.setText("✓ Connected");
             statusEl.style.color = "var(--color-green)";

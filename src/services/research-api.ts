@@ -29,7 +29,7 @@ import type { SourcePayload } from "../database/protocol";
 import { UnsupportedDatabaseRuntimeError } from "../errors";
 import { decodeCsvBytes } from "../domain/csv-encoding";
 import { NoteMaterializer } from "./note-materializer";
-import { SemanticScholarClient } from "../semantic-scholar/client";
+import { SemanticScholarClient, type RequestFn } from "../semantic-scholar/client";
 import { mapSsPaperToRecord } from "../semantic-scholar/mapper";
 import type { SemanticScholarImportOptions, SemanticScholarImportResult } from "../semantic-scholar/types";
 
@@ -103,7 +103,8 @@ export class ResearchApi implements ResearchExplorerMvpApi {
     private readonly app: App,
     private readonly pluginDirectory: string,
     private readonly settings: PluginSettings,
-    private readonly onBackupWarning?: (warning?: string) => Promise<void>
+    private readonly onBackupWarning?: (warning?: string) => Promise<void>,
+    private readonly semanticScholarRequestFn?: RequestFn
   ) {}
 
   async initialize(): Promise<void> {
@@ -427,7 +428,10 @@ export class ResearchApi implements ResearchExplorerMvpApi {
     onProgress?: (event: { stage: string; count?: number; total?: number; paperId?: string }) => void,
     signal?: AbortSignal
   ): Promise<SemanticScholarImportResult> {
-    const client = new SemanticScholarClient(options.apiKey);
+    if (!this.semanticScholarRequestFn) {
+      throw new Error("Semantic Scholar transport is unavailable.");
+    }
+    const client = new SemanticScholarClient(options.apiKey, this.semanticScholarRequestFn);
     const searchResponse = await client.searchPapers(options.query, options.limit);
     onProgress?.({ stage: "fetched", count: searchResponse.data.length, total: searchResponse.total });
 

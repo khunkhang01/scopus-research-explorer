@@ -1,5 +1,5 @@
 import path from "node:path";
-import { FileSystemAdapter, Notice, Plugin, WorkspaceLeaf } from "obsidian";
+import { FileSystemAdapter, Notice, Plugin, WorkspaceLeaf, requestUrl } from "obsidian";
 import { ResearchApi, type ResearchExplorerMvpApi } from "./services/research-api";
 import { NoteMaterializer } from "./services/note-materializer";
 import { DEFAULT_SETTINGS, type PluginSettings } from "./types";
@@ -38,7 +38,8 @@ export default class ScopusResearchExplorerPlugin extends Plugin {
         this.settings.backupWarning = warning;
         await this.saveSettings();
         this.renderBackupStatus();
-      }
+      },
+      requestUrl
     );
 
     // Register view before initializing so that workspace-restored tabs can display
