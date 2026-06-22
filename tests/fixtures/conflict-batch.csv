@@ -1,0 +1,3 @@
+Title,DOI,EID,Year,Abstract
+"Must Roll Back",10.3000/rollback,2-s2.0-399,2024,"This row must disappear when the next row conflicts."
+"Conflicting Identifiers",10.3000/two,2-s2.0-300,2024,"EID and DOI belong to different canonical records."
