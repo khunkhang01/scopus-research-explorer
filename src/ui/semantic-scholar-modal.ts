@@ -1,4 +1,4 @@
-import { App, Modal, Notice, Setting } from "obsidian";
+import { App, Modal, Notice, Setting, requestUrl } from "obsidian";
 import type { ResearchExplorerMvpApi } from "../services/research-api";
 import type { PluginSettings } from "../types";
 import { SemanticScholarClient, SemanticScholarApiError } from "../semantic-scholar/client";
@@ -149,7 +149,10 @@ export class SemanticScholarModal extends Modal {
     if (this.importBtnEl) this.importBtnEl.style.display = "none";
 
     try {
-      const client = new SemanticScholarClient(this.settings.semanticScholarApiKey || undefined);
+      const client = new SemanticScholarClient(
+        this.settings.semanticScholarApiKey || undefined,
+        requestUrl
+      );
       const response = await client.searchPapers(this.query.trim(), this.limit);
       this.previewPapers = response.data;
       this.totalOnServer = response.total;

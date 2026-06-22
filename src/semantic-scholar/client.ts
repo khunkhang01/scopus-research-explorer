@@ -1,4 +1,3 @@
-import { requestUrl } from "obsidian";
 import type { SsSearchResponse, SsReferencePage } from "./types";
 import { RateLimiter } from "./rate-limiter";
 
@@ -27,11 +26,10 @@ export class SemanticScholarClient {
   private readonly headers: Record<string, string>;
   readonly requestFn: RequestFn;
 
-  constructor(apiKey?: string, requestFnOverride?: RequestFn) {
+  constructor(apiKey: string | undefined, requestFn: RequestFn) {
     this.limiter = new RateLimiter(apiKey ? 10 : 1);
     this.headers = apiKey ? { "x-api-key": apiKey } : {};
-    // requestFnOverride is used in tests to avoid calling Obsidian's requestUrl
-    this.requestFn = requestFnOverride ?? requestUrl;
+    this.requestFn = requestFn;
   }
 
   async searchPapers(query: string, limit: number, offset = 0): Promise<SsSearchResponse> {
